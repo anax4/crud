@@ -53,10 +53,14 @@ class Database
     {
 
         //dados  da query
+        //campos da tabela
         $fields = array_keys($values);
+        //valores a inserir
+        $binds = array_pad([], count($fields), '?');
+        print_r($binds);
         #print_r($values);
         //query
-        $query = 'INSERT INTO ' . $this->table . ' (titulo, descricao, ativo, data) VALUES (?,?,?,?)';
+        $query = 'INSERT INTO ' . $this->table . ' (' . implode(',', $fields) . ') VALUES (?,?,?,?)';
         echo $query;
         exit;
     }
