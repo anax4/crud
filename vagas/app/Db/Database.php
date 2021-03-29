@@ -4,6 +4,7 @@
 namespace App\Db;
 
 use \PDO;
+use \PDOStatement;
 
 class Database
 {
@@ -44,6 +45,24 @@ class Database
         }
     }
 
+    /** 
+     *   metodo responsavel por executar a query
+     * @param string
+     * @param array 
+     * @return PDOStatement
+     */
+    public function execute($query, $params = [])
+    {
+        try {
+            $statement = $this->connection->prepare($query);
+            $statement->execute($params);
+            return $statement;
+        } catch (\PDOException $e) {
+            die('Error:' . $e->getMessage());
+        }
+    }
+
+
 
     /**
      *   @param array $values [field => value]
@@ -52,16 +71,41 @@ class Database
     public function insert($values)
     {
 
-        //dados  da query
+        # dados  da query
         //campos da tabela
         $fields = array_keys($values);
         //valores a inserir
         $binds = array_pad([], count($fields), '?');
-        print_r($binds);
+        #print_r($binds);
         #print_r($values);
         //query
-        $query = 'INSERT INTO ' . $this->table . ' (' . implode(',', $fields) . ') VALUES (?,?,?,?)';
-        echo $query;
-        exit;
+        $query = 'INSERT INTO ' . $this->table . ' (' . implode(',', $fields) . ') VALUES (' . implode(',', $binds) . ')';
+        //executa o insert
+        $this->execute($query, array_values($values));
+
+        //RETORNA O ULTIMO ID INSERIDO
+        return $this->connection->lastInsertId();
+        //echo $query;
+        //exit;
+    }
+
+    /**
+     *  @param string $where
+     * @param string $order
+     * @param string $limit
+     * @param string $fields
+     *
+     * @return PDOStatement
+     */
+    public function select($where = null, $order = null, $limit = null)
+    {
+        //dados da query
+        $where = strlen($where) ? 'WHERE ' . $where : '';
+        $order = strlen($order) ? 'ORDER BY  ' . $order : '';
+        $limit = strlen($limit) ? 'LIMIT ' . $limit : '';
+
+        //select da query
+        $query = 'SELECT * FROM ' . $this->table . ' ' . $where . ' ' . $order . ' ' . $limit;
+        return $this->execute($query);
     }
 }
